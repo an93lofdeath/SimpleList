@@ -1,12 +1,20 @@
 #include "include/database.h"
 
-void Database::write(vector<string> list) {
+void Database::write(vector<vector<string>> mainList) {
     ofstream db;
     db.open("db/lists.sl");
 
     if(db.is_open()) {
-        for(unsigned int i = 0; i < list.size(); i++) {
-            db << list[i] << "\n";
+        for(unsigned int user_index = 0; user_index < mainList.size(); user_index++) {
+            for(unsigned int list_index = 0; list_index < mainList[user_index].size(); list_index++){
+                if(list_index == 0) {
+                    db << "#" << mainList[user_index][list_index] << "\n";    
+                }
+                else {
+                    db << mainList[user_index][list_index] << "\n";
+                }
+            }
+            db << "%" << "\n";
         }
     }
     else {
@@ -15,18 +23,33 @@ void Database::write(vector<string> list) {
     db.close();
 }
 
-void Database::read() {
+vector<vector<string>> Database::read() {
     string line;
     ifstream db;
     db.open("db/lists.sl");
 
+    vector<string> userlist;
     if(db.is_open()) {
         while(getline(db,line,'\n')) {
-            cout << line << "\n";
+            if(line.front() == '#') {
+                cout << "found a hashtag: " << line << "\n";
+                line.erase(line.begin());
+                userlist.push_back(line);
+            }
+            else if(line.front() == '%') {
+                cout << "Found a %: " << line << "\n";
+                mainList.push_back(userlist);
+                userlist.clear();
+            }
+            else {
+                cout << "Found an item: " << line << "\n";
+                userlist.push_back(line);
+            }
         }
     }
     else {
         cout << "Cannot open file for reading.\n";
     }
     db.close();
+    return mainList;
 }
